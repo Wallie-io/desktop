@@ -8,7 +8,9 @@
 
         /* jake's mod */
         "paths": {
-            "@components/*": ["./src/components/*"]
+            "@components/*": ["./src/components/*"],
+            "@api/*": ["./src/api/*"],
+            "@types/*": ["./src/types/*"]
         },
 
         /* Bundler mode */
