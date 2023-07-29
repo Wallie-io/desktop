@@ -4,7 +4,7 @@ export type WallieNode = {
     head: string
     message: string
     url?: string // comes from reddit posts
-    date: number | string
+    date: number
     user: string
     directions: {
         GunId: string
