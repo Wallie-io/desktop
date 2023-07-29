@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import gun, { namespace } from 'GunApi/gun'
+import gun, { namespace } from '@api/gun'
 import { ViewNode } from './ViewNode'
 import LoadingWheel from '@components/LoadingWheel'
 import moment from 'moment'
