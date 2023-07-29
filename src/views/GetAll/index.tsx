@@ -99,13 +99,12 @@ const GetAll = () => {
 
     return (
         <GetAllStyled>
-            // this is the first thing that we'll see if there's nothing here
-            yet // but it hasn't been long enough to consider it a 404 issue
+            {/* this is the first thing that we'll see if there's nothing here
+            yet but it hasn't been long enough to consider it a 404 issue */}
             {!nodes.length && !longLoad && (
                 <LoadingWheel className="loadingwheel" />
             )}
-            // long load will change to true after a random amount of time has
-            passed
+            {/* long load will change to true after a random amount of time has passed */}
             {!nodes.length && longLoad && (
                 <NoContent>
                     It doesn't look like there's anything here... yet
