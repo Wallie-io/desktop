@@ -1,6 +1,7 @@
-import GUN from 'gun'
-import './namespaces'
-
+import GUN, { IGunInstance } from 'gun'
+export { namespace } from './namespaces'
+import { init as startHeartbeat } from './heartbeat'
+import { namespace } from './namespaces'
 const peers = []
 
 if (window.location.hostname === 'localhost') {
@@ -9,10 +10,12 @@ if (window.location.hostname === 'localhost') {
     peers.push('https://peer.wallie.io/gun')
 }
 
-const gun = GUN({
+const gun: IGunInstance = GUN({
     localStorage: true,
     peers,
 })
+
+startHeartbeat(gun, namespace)
 
 export default gun
 
