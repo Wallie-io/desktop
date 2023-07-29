@@ -23,13 +23,13 @@ export const ListNodesWrapper = styled.div`
             cursor: pointer;
         }
     }
-`
-export const ListNodes = styled.div`
-    display: flex;
-    flex-direction: column;
-    width: 90%;
-    @media only screen and (min-width: 600px) {
-        width: 520px;
+    > {
+        display: flex;
+        flex-direction: column;
+        width: 90%;
+        @media only screen and (min-width: 600px) {
+            width: 520px;
+        }
     }
 `
 export const NoContent = styled.div`

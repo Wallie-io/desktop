@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react'
 import gun, { namespace } from '@api/gun'
-import { ViewNode } from './ViewNode'
+import { ViewNode } from '@layouts/ViewNode'
 import LoadingWheel from '@components/LoadingWheel'
-import moment from 'moment'
 import { isNull, isString, random } from 'lodash'
 import {
     SearchActions,
@@ -10,15 +9,20 @@ import {
     useSearchReducer,
 } from './SearchState'
 import { WallieNode } from '@type/WallieNode'
+import { fillWithFun } from './utils/fillWithFun'
+import { GetAllStyled, ListNodesWrapper, NoContent } from './index.styled'
 
 const GetAll = () => {
     const [nodes, setNodes] = useState<WallieNode[] | any[]>([])
     const [longLoad, setLongLoad] = useState<boolean>(false)
     const [searchState, dispatch] = useSearchReducer()
+
+    // when we delete something, we remove it from the local state
     const onNodeRemoved = (nodeKey: string | undefined) => {
         setNodes((nodes) => nodes.filter((node) => node.key !== nodeKey))
     }
 
+    // a quick async wrapper to get us a simple state tied fetching mechanism
     const getNodes = (): Promise<WallieNode[]> => {
         return new Promise((resolve) => {
             setNodes((nodes) => {
@@ -27,13 +31,6 @@ const GetAll = () => {
             })
         })
     }
-
-    // init the page title
-    useEffect(() => {
-        document.title = `
-         Wallie, a front [page,]
-      `
-    }, [])
 
     // Wait 3 seconds and if there still aren't any nodes
     // update the component state to show the 404-ish state
@@ -45,61 +42,13 @@ const GetAll = () => {
                 }
                 return nodes
             })
-        }, random(5000, 600000))
+        }, random(5000, 60000))
     }, [])
 
     // Get reddit posts to start filling in some content
+    // @todo - i think it would be good to pull this into a hook as well
+    // but the interesting challenge is how tied it is to hook-based local state
     useEffect(() => {
-        type RedditPost = {
-            author: string //maps to user
-            distinguished: string
-            thumbnail: string
-            title: string //maps to node.directionText
-            url: string
-            selftext: string //maps to node.message
-            created_utc: Number
-        }
-
-        type RedditPostResponse = {
-            data: {
-                children: [{ data: RedditPost }]
-            }
-        }
-        const fillWithFun = async () => {
-            const channel = [
-                'CrazyIdeas',
-                'MorbidReality',
-                'TalesFromRetail',
-                'AskReddit',
-            ][random(0, 2)]
-            const res = await fetch(
-                `https://www.reddit.com/r/${channel}/new.json`
-            )
-            const {
-                data: { children: redditPosts },
-            } = (await res.json()) as RedditPostResponse
-            const {
-                author: user,
-                thumbnail,
-                title: directionText,
-                selftext: message,
-                url,
-                created_utc: date,
-            }: RedditPost = redditPosts[random(0, redditPosts?.length - 1)]
-                ?.data
-            const post: any = {
-                user,
-                thumbnail,
-                url,
-                date: Date.now(),
-                directionText,
-                message,
-                redditDate: date,
-            }
-            gun.get(namespace + `/node`)
-                .get(user)
-                .put(post, (awk: string) => console.log(awk))
-        }
         setTimeout(async () => {
             const nodes = await getNodes()
             if (!nodes?.length) {
@@ -108,41 +57,6 @@ const GetAll = () => {
             }
             console.log(`we did not fill with fun`)
         }, 3000) // time until we'd like to fill it
-    }, [])
-
-    const deleteNode = (key: string): Promise<void> => {
-        return new Promise((resolve) => {
-            gun.get(namespace + '/node')
-                .get(key)
-                .put(null, (awk: string) => {
-                    console.log(`deleted ${key} awk:`, awk)
-                    onNodeRemoved(key)
-                    resolve()
-                })
-        })
-    }
-
-    // handle Nuclear event codes
-    useEffect(() => {
-        async function downHandler({ key }: KeyboardEvent) {
-            if (key !== 'N') {
-                return
-            }
-            const nodes = await getNodes()
-            for (const node of nodes) {
-                const isOld = moment(node.date).isBefore(
-                    moment(new Date()).subtract(3, 'days')
-                )
-                const isReservedKey = ['wrfrn32', 'clock'].includes(key)
-                if (isOld && !isReservedKey) {
-                    await deleteNode(node.key)
-                }
-            }
-        }
-        window.addEventListener('keydown', downHandler)
-        return () => {
-            window.removeEventListener('keydown', downHandler)
-        }
     }, [])
 
     // get all of the nodes
@@ -185,16 +99,20 @@ const GetAll = () => {
 
     return (
         <GetAllStyled>
+            // this is the first thing that we'll see if there's nothing here
+            yet // but it hasn't been long enough to consider it a 404 issue
             {!nodes.length && !longLoad && (
                 <LoadingWheel className="loadingwheel" />
             )}
+            // long load will change to true after a random amount of time has
+            passed
             {!nodes.length && longLoad && (
                 <NoContent>
                     It doesn't look like there's anything here... yet
                 </NoContent>
             )}
             <ListNodesWrapper>
-                <ListNodes>
+                <div>
                     {nodes.length && (
                         <SearchHighlights
                             {...searchState}
@@ -208,7 +126,7 @@ const GetAll = () => {
                             onNodeRemoved={onNodeRemoved}
                         />
                     ))}
-                </ListNodes>
+                </div>
             </ListNodesWrapper>
         </GetAllStyled>
     )
