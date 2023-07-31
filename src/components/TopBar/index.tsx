@@ -18,8 +18,12 @@ export default function TopBar() {
                 {' '}
                 <div className="wallieText">wallie</div>
             </Link>
-            <Link to="/node/new" className="newNode">
-                <Button>
+            <Link
+                to="#"
+                /*to="/node/new"*/ className="newNode"
+                title="adding new nodes currently disabled"
+            >
+                <Button disabled={true}>
                     <div>New</div>
                     <img src={RandomLogo} alt="Wallie Logo Dark" />
                 </Button>
