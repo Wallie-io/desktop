@@ -11,7 +11,8 @@
             "@components/*": ["./src/components/*"],
             "@api/*": ["./src/api/*"],
             "@type/*": ["./src/type/*"],
-            "@layouts/*": ["./src/layouts/*"]
+            "@layouts/*": ["./src/layouts/*"],
+            "@hooks/*": ["./src/hooks/*"]
         },
 
         /* Bundler mode */
