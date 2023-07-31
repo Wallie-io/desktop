@@ -1,6 +1,6 @@
 import gun, { namespace } from '@api/gun'
 
-export const deleteNode = (
+export const removeByKey = (
     key: string,
     callback?: (key: string) => void
 ): Promise<void> => {
