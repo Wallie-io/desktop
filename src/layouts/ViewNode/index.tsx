@@ -1,89 +1,29 @@
 import { FC, useEffect, useState } from 'react'
-import styled from 'styled-components'
 import { Link } from 'react-router-dom'
-import { SimpleIcon, Styles } from '../Interface'
-import { DungeonNode } from '../Nodes'
-import gun, { namespace } from '../GunApi/gun'
+import { SimpleIcon, Styles } from '@components/interface'
+import gun, { namespace } from '@api/gun'
 import { useNavigate } from 'react-router-dom'
-import useListen from '../GunApi/useListen'
-import useKeyboard from '../utils/useKeyboard'
-import { TimeAgo } from './TimeAgo'
-import useViewCount from './useViewCount'
-import ViewCount from './ViewCount'
+import { WallieNode } from '@type/WallieNode'
+import { TimeAgo } from '@components/TimeAgo'
+import { HeadLink, Title, ViewNodeStyled } from './index.styled'
+
+import { db } from '@api/gun'
+import { ViewCount } from './ViewCount'
+import useKeyboard from '@hooks/useKeyboard'
+import useViewCount from '@hooks/useViewCount'
 
 type ViewNodeProps = {
-    node: Node
+    node: WallieNode
     onNodeRemoved: (nodeKey: string | undefined) => void
 }
 
-const ViewNodeStyled = styled.div`
-    margin-top: 15px;
-    padding: 1em 1em 1em 1em;
-    display: flex;
-    flex-direction: column;
-    border-radius: 10px;
-    box-shadow: -7px -7px 20px 0px #fff9, -4px -4px 5px 0px #e7e7e799,
-        7px 7px 20px 0px #0002, 4px 4px 5px 0px #0001,
-        inset 0px 0px 0px 0px #fff9, inset 0px 0px 0px 0px #0001,
-        inset 0px 0px 0px 0px #fff9, inset 0px 0px 0px 0px #0001;
-    transition: box-shadow 0.6s cubic-bezier(0.79, 0.21, 0.06, 0.81);
-    background-color: white;
-
-    img {
-        width: 100%;
-    }
-`
-const HeadLink = styled(Link)`
-    font-style: italic;
-    color: #333;
-    margin-left: 0px;
-    padding-bottom: 8px;
-`
-const User = styled.div`
-    margin-top: 5px;
-    text-decoration: none;
-    font-weight: 600;
-`
-
-const Message = styled.div`
-    margin-top: 1em;
-`
-
-const Title = styled.h4`
-    margin: 4px 0px;
-    font-weight: 800;
-`
-
-const Menu = styled.div`
-    flex: 1;
-    display: flex;
-    .simpleIcon {
-        color: red;
-        margin-left: 5px;
-    }
-    .timeAgo {
-        padding-left: 7px;
-        padding-top: 5px;
-        font-style: italic;
-    }
-    .viewCount {
-        padding-left: 7px;
-        padding-top: 5px;
-    }
-    .ogLink {
-        padding-left: 7px;
-        padding-top: 4px;
-    }
-    .nodeLink {
-        padding-left: 7px;
-        padding-top: 4px;
-    }
-`
-
 export const ViewNode: FC<ViewNodeProps> = ({ node, onNodeRemoved }) => {
     const navigate = useNavigate()
-    const head = useListen(node.head, 'node', true) as DungeonNode
+    const head = node.head && db.node.listenOne(node.head)
     const [isShowAdvanced, showAdvanced] = useState<boolean>(false)
+    //@todo possibly investigate if ID is always available?
+    //i don't want to open too many cans of worms during the initial refactor phase
+    //@ts-ignore
     const [views] = useViewCount(node.key)
     const keypressed = useKeyboard(['v'])
 
@@ -93,19 +33,22 @@ export const ViewNode: FC<ViewNodeProps> = ({ node, onNodeRemoved }) => {
         }
         gun.get(namespace + '/node')
             .get(node.key)
-            .put(null, (awk) => {
+            .put(null, (_awk) => {
                 onNodeRemoved(node.key)
             })
     }
 
+    //we use effects here to draw the logic of responding to key inputs into a previously
+    //defined hook. aka, it's hard to mix event based state based hooks w/ one another
     useEffect(() => {
         if (keypressed === 'v') {
             showAdvanced((isShowAdvanced) => !isShowAdvanced)
         }
     }, [keypressed])
 
-    const onPostClicked = (event) => {
-        //checks to see if it was double click
+    //there are a few different cases to handle for when clicking on a node
+    const onPostClicked = (event: MouseEvent) => {
+        //checks to see if it was only a single click for which we do nothing
         if (event.detail <= 1) {
             return
         }
@@ -113,16 +56,17 @@ export const ViewNode: FC<ViewNodeProps> = ({ node, onNodeRemoved }) => {
         if (node.url) {
             return window.open(node.url, '_blank')
         }
-        if (node.directionText) {
-            return navigate(`/dashboard/${node.key}`)
-        }
         return navigate(`/node/${node.key}`)
     }
 
+    //we want to remove any formatting from the header/title text
     function stripHtml(input: string) {
         let doc = new DOMParser().parseFromString(input, 'text/html')
         return doc.body.textContent || ''
     }
+
+    //shortens the string if it's longer than the suggested length
+    //and adds dot dot dot after but only if longer
     const trimWithEllip = (input: string = '', length: number) => {
         return input.length > length
             ? input.substring(0, length) + '...'
@@ -130,6 +74,7 @@ export const ViewNode: FC<ViewNodeProps> = ({ node, onNodeRemoved }) => {
     }
 
     return (
+        // @ts-ignore
         <ViewNodeStyled onClick={onPostClicked}>
             {head && (
                 <HeadLink to={`/node/${node.head}`}>
@@ -138,15 +83,16 @@ export const ViewNode: FC<ViewNodeProps> = ({ node, onNodeRemoved }) => {
             )}
             {node.directionText && <Title>{node.directionText}</Title>}
             {node.message && (
-                <Message
+                <div
+                    className="message"
                     dangerouslySetInnerHTML={{
                         __html: node.message || '',
                     }}
-                ></Message>
+                ></div>
             )}
             <br />
-            <Menu>
-                {node.user && <User>@{node.user}</User>}
+            <div className="menu">
+                {node.user && <div className="user">@{node.user}</div>}
                 {node.date && <TimeAgo date={node.date}></TimeAgo>}
                 <ViewCount count={views} />
                 {node.url && (
@@ -164,12 +110,12 @@ export const ViewNode: FC<ViewNodeProps> = ({ node, onNodeRemoved }) => {
                     <SimpleIcon
                         content="[ ␡ ]"
                         hoverContent={'[ ␡ ]'}
-                        style={Styles.warning}
+                        activityStyle={Styles.warning}
                         className="simpleIcon"
                         onClick={() => derefNode()}
                     />
                 )}
-            </Menu>
+            </div>
         </ViewNodeStyled>
     )
 }
