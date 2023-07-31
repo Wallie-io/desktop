@@ -1,4 +1,4 @@
-import { deleteNode } from '@api/gun/node/delete'
+import { db } from '@api/gun'
 import { WallieNode } from '@type/WallieNode'
 import { DateTime } from 'luxon'
 import { useEffect } from 'react'
@@ -16,7 +16,7 @@ export function useNuclearEvent(getNodes: () => WallieNode[]) {
                 const isOld = DateTime.fromMillis(node.date) < threeDaysAgo
                 const isReservedKey = ['wrfrn32', 'clock'].includes(key)
                 if (isOld && !isReservedKey) {
-                    node.key && (await deleteNode(node.key))
+                    node.key && (await db.node.removeByKey(node.key))
                 }
             }
         }
