@@ -18,12 +18,7 @@ type RedditPostResponse = {
 }
 
 export const fillWithFun = async () => {
-    const channel = [
-        'CrazyIdeas',
-        'MorbidReality',
-        'TalesFromRetail',
-        'AskReddit',
-    ][random(0, 2)]
+    const channel = ['CrazyIdeas', 'TalesFromRetail', 'AskReddit'][random(0, 2)]
     const res = await fetch(`https://www.reddit.com/r/${channel}/new.json`)
     const {
         data: { children: redditPosts },
