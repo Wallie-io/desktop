@@ -19,7 +19,7 @@ type ViewNodeProps = {
 
 export const ViewNode: FC<ViewNodeProps> = ({ node, onNodeRemoved }) => {
     const navigate = useNavigate()
-    const head = node.head && db.node.listenOne(node.head)
+    const head = node.head && db.node.listenOne(node.head, 'node')
     const [isShowAdvanced, showAdvanced] = useState<boolean>(false)
     //@todo possibly investigate if ID is always available?
     //i don't want to open too many cans of worms during the initial refactor phase
