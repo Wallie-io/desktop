@@ -2,12 +2,12 @@ import { FC, useMemo } from 'react'
 import { DateTime } from 'luxon'
 
 type TimeAgoProps = {
-    date: Date | string | number
+    date: number
 }
 
 export const TimeAgo: FC<TimeAgoProps> = ({ date }) => {
     const formattedDate = useMemo(() => {
-        return DateTime.fromJSDate(new Date(date)).toRelative()
+        return DateTime.fromMillis(date).toRelative()
     }, [date])
 
     if (!formattedDate) return null
