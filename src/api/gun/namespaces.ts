@@ -6,7 +6,7 @@ const subDomain = window.location.host.split('.')[0]
 const defaultNamespace = urlParams.get('namespace') || subDomain || `wallie2.0`
 export let namespace: string = defaultNamespace
 
-export function init(gun?: IGunInstance, _namespace?: string) {
+export function init(_gun?: IGunInstance, _namespace?: string) {
     if (_namespace) {
         namespace = _namespace
         console.log(`namespace updated: namespace`)

@@ -19,10 +19,7 @@ type Action = { type: SearchActions; payload?: any | SearchState['ticks'] }
  * @param action
  * @returns newState
  */
-export function searchStateReducer(
-    state: SearchState,
-    { type, payload }: Action
-) {
+export function searchStateReducer(state: SearchState, { type }: Action) {
     switch (type) {
         case SearchActions.INCREMENT_TICKS:
             return { ...state, ticks: state.ticks + 1, lastUpdated: new Date() }
