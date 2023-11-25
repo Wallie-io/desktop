@@ -23,7 +23,8 @@ export const ViewNode: FC<ViewNodeProps> = ({ node, onNodeRemoved }) => {
     const [isShowAdvanced, showAdvanced] = useState<boolean>(false)
     //@todo possibly investigate if ID is always available?
     //i don't want to open too many cans of worms during the initial refactor phase
-    //@ts-ignore
+
+    //@ts-expect-error - node.key needs better typing
     const [views] = useViewCount(node.key)
     const keypressed = useKeyboard(['v'])
 
@@ -46,6 +47,7 @@ export const ViewNode: FC<ViewNodeProps> = ({ node, onNodeRemoved }) => {
         }
     }, [keypressed])
 
+    // @todo - this is unused
     //there are a few different cases to handle for when clicking on a node
     const onPostClicked = (event: MouseEvent) => {
         //checks to see if it was only a single click for which we do nothing
@@ -59,12 +61,14 @@ export const ViewNode: FC<ViewNodeProps> = ({ node, onNodeRemoved }) => {
         return navigate(`/node/${node.key}`)
     }
 
+    // @todo - this is unused
     //we want to remove any formatting from the header/title text
     function stripHtml(input: string) {
         let doc = new DOMParser().parseFromString(input, 'text/html')
         return doc.body.textContent || ''
     }
 
+    // @todo - this is unused
     //shortens the string if it's longer than the suggested length
     //and adds dot dot dot after but only if longer
     const trimWithEllip = (input: string = '', length: number) => {
@@ -74,27 +78,33 @@ export const ViewNode: FC<ViewNodeProps> = ({ node, onNodeRemoved }) => {
     }
 
     return (
-        // @ts-ignore
-        <ViewNodeStyled onClick={onPostClicked}>
-            {head && (
-                <HeadLink to={`/node/${node.head}`}>
-                    re: {trimWithEllip(stripHtml(head.message), 20)}
-                </HeadLink>
-            )}
-            {node.directionText && <Title>{node.directionText}</Title>}
-            {node.message && (
+        <div className="mt-4 max-w-sm rounded overflow-hidden shadow-lg bg-white p-6">
+            <div className="font-bold text-xl mb-2">{node.directionText}</div>
+            <p className="text-gray-700 text-base">
                 <div
                     className="message"
                     dangerouslySetInnerHTML={{
                         __html: node.message || '',
                     }}
                 ></div>
-            )}
-            <br />
-            <div className="menu">
-                {node.user && <div className="user">@{node.user}</div>}
-                {node.date && <TimeAgo date={node.date}></TimeAgo>}
-                <ViewCount count={views} />
+            </p>
+            <div className="pt-4 flex items-center">
+                <span className="text-sm text-gray-600">@{node.user}</span>
+                <span className="ml-auto text-sm text-gray-600">
+                    <TimeAgo date={node.date}></TimeAgo>
+                </span>
+                <span className="text-sm text-gray-600 ml-4">
+                    <ViewCount count={views} />
+                </span>
+            </div>
+
+            {/** head && (
+                <HeadLink to={`/node/${node.head}`}>
+                    re: {trimWithEllip(stripHtml(head.message), 20)}
+                </HeadLink>
+            ) **/}
+
+            {/* <div className="menu">
                 {node.url && (
                     <div className="ogLink">
                         <a href={node.url} target="_blank">
@@ -102,11 +112,13 @@ export const ViewNode: FC<ViewNodeProps> = ({ node, onNodeRemoved }) => {
                         </a>
                     </div>
                 )}
+                */}
 
-                <div className="nodeLink">
+            {/* <div className="nodeLink">
                     <Link to={'/node/' + node.key}>node-link</Link>
-                </div>
-                {isShowAdvanced && (
+                </div> */}
+
+            {/* isShowAdvanced && (
                     <SimpleIcon
                         content="[ ␡ ]"
                         hoverContent={'[ ␡ ]'}
@@ -114,8 +126,7 @@ export const ViewNode: FC<ViewNodeProps> = ({ node, onNodeRemoved }) => {
                         className="simpleIcon"
                         onClick={() => derefNode()}
                     />
-                )}
-            </div>
-        </ViewNodeStyled>
+                ) */}
+        </div>
     )
 }
